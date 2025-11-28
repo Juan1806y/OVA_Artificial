@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OVA: Bases de Datos Relacionales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+
+        /* Menú lateral */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .menu-item {
+            margin-bottom: 15px;
+        }
+
+        .menu-link {
+            display: block;
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .menu-link:hover, .menu-link:focus {
+            background: #667eea;
+            transform: translateX(5px);
+            outline: 2px solid #fff;
+        }
+
+        .submenu {
+            margin-left: 15px;
+            margin-top: 8px;
+        }
+
+        .submenu .menu-link {
+            font-size: 0.9em;
+            padding: 8px 12px;
+            color: #bdc3c7;
+        }
+
+        .submenu .menu-link:hover, .submenu .menu-link:focus {
+            background: #34495e;
+            color: white;
+        }
+
+        /* Contenido principal */
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .section h2 {
+            color: #34495e;
+            font-size: 2em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section h3 {
+            color: #555;
+            font-size: 1.5em;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        .section p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .topic-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .highlight-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        /* Quiz */
+        .quiz-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .question {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .question h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .option {
+            display: block;
+            padding: 12px;
+            margin: 10px 0;
+            background: #ecf0f1;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover, .btn-submit:focus {
+            transform: scale(1.05);
+            outline: 3px solid #667eea;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Botón menú móvil */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        /* Lista con estilo */
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 250px;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 999;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .content {
+                padding: 80px 20px 20px 20px;
+            }
+
+            .section h1 {
+                font-size: 1.8em;
+            }
+
+            .section h2 {
+                font-size: 1.5em;
+            }
+
+            .topic-image {
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section h1 {
+                font-size: 1.5em;
+            }
+
+            .content {
+                padding: 70px 15px 15px 15px;
+            }
+
+            .quiz-container {
+                padding: 15px;
+            }
+
+            .question {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menú">☰ Menú</button>
+
+    <div class="container">
+        <!-- Menú lateral -->
+        <nav class="sidebar" id="sidebar" role="navigation" aria-label="Menú principal">
+            <h2>Contenidos</h2>
+            <div class="menu-item">
+                <a href="#presentacion" class="menu-link">Presentación</a>
+            </div>
+            <div class="menu-item">
+                <a href="#item1-1" class="menu-link">1.1 Introducción a BD</a>
+                <div class="submenu">
+                    <a href="#item1-1-1" class="menu-link">1.1.1 ¿Qué es una BD?</a>
+                    <a href="#item1-1-2" class="menu-link">1.1.2 Evolución histórica</a>
+                </div>
+            </div>
+            <div class="menu-item">
+                <a href="#item1-2" class="menu-link">1.2 Modelo Relacional</a>
+                <div class="submenu">
+                    <a href="#item1-2-1" class="menu-link">1.2.1 Tablas y relaciones</a>
+                    <a href="#item1-2-2" class="menu-link">1.2.2 Claves primarias</a>
+                    <a href="#item1-2-3" class="menu-link">1.2.3 Claves foráneas</a>
+                </div>
+            </div>
+            <div class="menu-item">
+                <a href="#item1-3" class="menu-link">1.3 Normalización</a>
+                <div class="submenu">
+                    <a href="#item1-3-1" class="menu-link">1.3.1 Primera forma normal</a>
+                    <a href="#item1-3-2" class="menu-link">1.3.2 Segunda forma normal</a>
+                    <a href="#item1-3-3" class="menu-link">1.3.3 Tercera forma normal</a>
+                </div>
+            </div>
+            <div class="menu-item">
+                <a href="#item1-4" class="menu-link">1.4 Lenguaje SQL</a>
+                <div class="submenu">
+                    <a href="#item1-4-1" class="menu-link">1.4.1 Comandos básicos</a>
+                    <a href="#item1-4-2" class="menu-link">1.4.2 Consultas SELECT</a>
+                    <a href="#item1-4-3" class="menu-link">1.4.3 Operaciones JOIN</a>
+                </div>
+            </div>
+            <div class="menu-item">
+                <a href="#item1-5" class="menu-link">1.5 Diseño de BD</a>
+                <div class="submenu">
+                    <a href="#item1-5-1" class="menu-link">1.5.1 Diagramas ER</a>
+                    <a href="#item1-5-2" class="menu-link">1.5.2 Buenas prácticas</a>
+                </div>
+            </div>
+            <div class="menu-item">
+                <a href="#actividades" class="menu-link">Actividades</a>
+            </div>
+        </nav>
+
+        <!-- Contenido principal -->
+        <main class="content" role="main">
+            <!-- Presentación -->
+            <section id="presentacion" class="section">
+                <h1>Presentación del OVA</h1>
+                <div class="highlight-box">
+                    <p><strong>Este recurso nos muestra cómo utilizar bases de datos relacionales de manera efectiva.</strong></p>
+                    <p>Fue creado por <strong>Juan David Ortiz Cano</strong> bajo la metodología QCHE del Dr. Raúl E. Rodríguez Ibáñez:</p>
+                    <ul>
+                        <li><strong>¿Qué voy a hacer?</strong> Aprender los conceptos fundamentales de bases de datos relacionales</li>
+                        <li><strong>¿Cómo lo voy a hacer?</strong> A través de contenidos estructurados, ejemplos prácticos y actividades evaluativas</li>
+                        <li><strong>Hacer:</strong> Explorar cada sección y realizar las actividades propuestas</li>
+                        <li><strong>Evaluar:</strong> Verificar tu comprensión mediante el cuestionario final</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><em>Este OVA se distribuye bajo licenciamiento Creative Commons, promoviendo el acceso libre al conocimiento.</em></p>
+                </div>
+            </section>
+
+            <!-- 1.1 Introducción a BD -->
+            <section id="item1-1" class="section">
+                <h1>1.1 Introducción a Bases de Datos</h1>
+                <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1200&h=300&fit=crop" alt="Servidores de bases de datos en un centro de datos moderno" class="topic-image">
+                
+                <p>Las bases de datos son el corazón de la mayoría de aplicaciones modernas. Desde tu red social favorita hasta el sistema bancario, todas dependen de bases de datos para almacenar y gestionar información de manera eficiente.</p>
+
+                <h3 id="item1-1-1">1.1.1 ¿Qué es una Base de Datos?</h3>
+                <p>Una base de datos es un conjunto organizado de información estructurada que se almacena electrónicamente en un sistema informático. Piensa en ella como un archivador digital super inteligente que no solo guarda información, sino que también te ayuda a encontrarla, organizarla y relacionarla de manera rápida.</p>
+                
+                <p>Las bases de datos relacionales organizan la información en tablas, similares a las hojas de cálculo, pero con superpoderes que permiten conectar información entre diferentes tablas de manera lógica y eficiente.</p>
+
+                <h3 id="item1-1-2">1.1.2 Evolución Histórica</h3>
+                <p>El modelo relacional fue propuesto por Edgar F. Codd en 1970 mientras trabajaba en IBM. Su propuesta revolucionó la forma en que almacenamos y accedemos a los datos, estableciendo las bases para los sistemas modernos que usamos hoy.</p>
+                
+                <p>Antes del modelo relacional, los datos se almacenaban en estructuras jerárquicas o de red que eran complejas y difíciles de mantener. El modelo relacional simplificó todo esto al usar tablas y relaciones matemáticas para organizar la información.</p>
+            </section>
+
+            <!-- 1.2 Modelo Relacional -->
+            <section id="item1-2" class="section">
+                <h1>1.2 Modelo Relacional</h1>
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=300&fit=crop" alt="Diagrama conceptual de relaciones entre datos" class="topic-image">
+                
+                <p>El modelo relacional es la base teórica sobre la que se construyen las bases de datos relacionales. Se basa en el concepto matemático de relación, que en términos prácticos se traduce en tablas que pueden conectarse entre sí.</p>
+
+                <h3 id="item1-2-1">1.2.1 Tablas y Relaciones</h3>
+                <p>En el modelo relacional, toda la información se organiza en tablas. Cada tabla representa un tipo específico de entidad (como clientes, productos o pedidos) y cada fila de la tabla representa una instancia específica de esa entidad.</p>
+                
+                <p>Las columnas de una tabla definen los atributos o características de la entidad. Por ejemplo, una tabla de clientes podría tener columnas como nombre, correo electrónico, teléfono y dirección.</p>
+                
+                <p>Lo realmente poderoso del modelo relacional es la capacidad de establecer conexiones entre tablas diferentes. Por ejemplo, puedes relacionar una tabla de pedidos con una tabla de clientes, permitiendo saber qué cliente realizó cada pedido.</p>
+
+                <h3 id="item1-2-2">1.2.2 Claves Primarias</h3>
+                <p>Una clave primaria es un campo o combinación de campos que identifica de manera única cada registro en una tabla. Es como el DNI de cada fila: no puede haber dos registros con la misma clave primaria.</p>
+                
+                <p>Las características de una clave primaria son: debe ser única, no puede ser nula (siempre debe tener un valor), y debe ser inmutable (no debería cambiar con el tiempo). Comúnmente se usan números auto-incrementales como claves primarias.</p>
+
+                <h3 id="item1-2-3">1.2.3 Claves Foráneas</h3>
+                <p>Una clave foránea es un campo en una tabla que hace referencia a la clave primaria de otra tabla. Es el mecanismo que permite establecer relaciones entre diferentes tablas.</p>
+                
+                <p>Por ejemplo, si tienes una tabla de pedidos y quieres saber qué cliente hizo cada pedido, incluirías en la tabla de pedidos una clave foránea que apunte al identificador del cliente en la tabla de clientes. Esto mantiene la integridad referencial, asegurando que no puedas tener un pedido de un cliente que no existe.</p>
+            </section>
+
+            <!-- 1.3 Normalización -->
+            <section id="item1-3" class="section">
+                <h1>1.3 Normalización de Bases de Datos</h1>
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=300&fit=crop" alt="Gráficos y análisis de datos organizados" class="topic-image">
+                
+                <p>La normalización es un proceso de organización de datos que tiene como objetivo reducir la redundancia y mejorar la integridad de los datos. Es como organizar tu habitación: cada cosa tiene su lugar y nada está duplicado innecesariamente.</p>
+
+                <h3 id="item1-3-1">1.3.1 Primera Forma Normal (1FN)</h3>
+                <p>Una tabla está en primera forma normal cuando cada columna contiene valores atómicos (indivisibles) y no hay grupos repetidos. Esto significa que no puedes tener, por ejemplo, una columna de teléfonos que contenga varios números separados por comas.</p>
+                
+                <p>En lugar de eso, si un cliente puede tener varios teléfonos, deberías crear una tabla separada para los teléfonos, donde cada teléfono sea una fila individual relacionada con el cliente correspondiente.</p>
+
+                <h3 id="item1-3-2">1.3.2 Segunda Forma Normal (2FN)</h3>
+                <p>Para estar en segunda forma normal, la tabla debe estar primero en 1FN y además todos los atributos que no son clave deben depender completamente de la clave primaria, no solo de parte de ella.</p>
+                
+                <p>Esto es especialmente relevante cuando tienes claves primarias compuestas (formadas por varios campos). Cada campo que no sea parte de la clave debe depender de toda la clave primaria, no solo de una parte de ella.</p>
+
+                <h3 id="item1-3-3">1.3.3 Tercera Forma Normal (3FN)</h3>
+                <p>Una tabla está en tercera forma normal cuando está en 2FN y además no existen dependencias transitivas. Esto significa que ningún campo que no sea clave debe depender de otro campo que no sea clave.</p>
+                
+                <p>Por ejemplo, si tienes una tabla de empleados con el campo ciudad y código postal, y el código postal depende de la ciudad (no del empleado directamente), entonces deberías separar esa información en una tabla de ciudades independiente.</p>
+            </section>
+
+            <!-- 1.4 Lenguaje SQL -->
+            <section id="item1-4" class="section">
+                <h1>1.4 Lenguaje SQL</h1>
+                <img src="https://images.unsplash.com/photo-1542903660-eedba2cda473?w=1200&h=300&fit=crop" alt="Código SQL en pantalla de computadora" class="topic-image">
+                
+                <p>SQL (Structured Query Language) es el lenguaje estándar para interactuar con bases de datos relacionales. Es como el idioma que hablas para comunicarte con la base de datos, permitiéndote crear, leer, actualizar y eliminar información.</p>
+
+                <h3 id="item1-4-1">1.4.1 Comandos Básicos</h3>
+                <p>Los comandos básicos de SQL se dividen en varias categorías. Los comandos DDL (Data Definition Language) como CREATE, ALTER y DROP se usan para definir la estructura de la base de datos. Los comandos DML (Data Manipulation Language) como INSERT, UPDATE y DELETE se usan para manipular los datos.</p>
+                
+                <p>Por ejemplo, para crear una tabla de clientes usarías CREATE TABLE, para agregar un nuevo cliente usarías INSERT, y para modificar información de un cliente existente usarías UPDATE.</p>
+
+                <h3 id="item1-4-2">1.4.2 Consultas SELECT</h3>
+                <p>SELECT es probablemente el comando más usado en SQL. Te permite recuperar información de la base de datos según criterios específicos. Puedes seleccionar todas las columnas o solo algunas, filtrar resultados con WHERE, ordenarlos con ORDER BY, y agruparlos con GROUP BY.</p>
+                
+                <p>Una consulta simple como SELECT * FROM clientes te devuelve todos los clientes, mientras que SELECT nombre, email FROM clientes WHERE ciudad = 'Madrid' te devuelve solo el nombre y email de los clientes que viven en Madrid.</p>
+
+                <h3 id="item1-4-3">1.4.3 Operaciones JOIN</h3>
+                <p>Los JOINs son operaciones que permiten combinar filas de dos o más tablas basándose en una columna relacionada entre ellas. Son fundamentales para aprovechar el poder de las bases de datos relacionales.</p>
+                
+                <p>Existen varios tipos de JOIN: INNER JOIN devuelve solo las filas que tienen coincidencias en ambas tablas, LEFT JOIN devuelve todas las filas de la tabla izquierda más las coincidencias de la derecha, RIGHT JOIN hace lo opuesto, y FULL JOIN devuelve todas las filas de ambas tablas.</p>
+            </section>
+
+            <!-- 1.5 Diseño de BD -->
+            <section id="item1-5" class="section">
+                <h1>1.5 Diseño de Bases de Datos</h1>
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=300&fit=crop" alt="Diseño y planificación de sistemas" class="topic-image">
+                
+                <p>El diseño de bases de datos es una etapa crucial que determina la eficiencia, escalabilidad y mantenibilidad de tu sistema. Un buen diseño desde el principio te ahorrará muchos dolores de cabeza en el futuro.</p>
+
+                <h3 id="item1-5-1">1.5.1 Diagramas Entidad-Relación</h3>
+                <p>Los diagramas ER son herramientas visuales que te ayudan a modelar la estructura de tu base de datos antes de implementarla. Representan las entidades (tablas), sus atributos (columnas) y las relaciones entre ellas.</p>
+                
+                <p>En un diagrama ER, las entidades se representan como rectángulos, los atributos como óvalos conectados a las entidades, y las relaciones como rombos que conectan las entidades. Estos diagramas te ayudan a visualizar y comunicar el diseño de tu base de datos de manera efectiva.</p>
+
+                <h3 id="item1-5-2">1.5.2 Buenas Prácticas en el Diseño</h3>
+                <p>Algunas buenas prácticas incluyen: usar nombres descriptivos para tablas y columnas, mantener la consistencia en las convenciones de nomenclatura, evitar la redundancia de datos mediante la normalización, documentar tu diseño, y considerar el rendimiento desde el principio.</p>
+                
+                <p>También es importante pensar en la escalabilidad: ¿cómo crecerá tu base de datos con el tiempo? Diseña con flexibilidad para acomodar cambios futuros sin tener que reestructurar todo desde cero. Y siempre considera la seguridad: quién tendrá acceso a qué datos y cómo protegerás la información sensible.</p>
+            </section>
+
+            <!-- Actividades de Aprendizaje -->
+            <section id="actividades" class="section">
+                <h1>Actividades de Aprendizaje</h1>
+                <p>Pon a prueba tus conocimientos sobre bases de datos relacionales con el siguiente cuestionario. Selecciona la respuesta correcta para cada pregunta.</p>
+
+                <div class="quiz-container">
+                    <form id="quizForm">
+                        <!-- Pregunta 1 -->
+                        <div class="question">
+                            <h3>1. ¿Qué característica NO corresponde a una clave primaria?</h3>
+                            <label class="option">
+                                <input type="radio" name="q1" value="a">
+                                Debe ser única en toda la tabla
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q1" value="b">
+                                No puede contener valores nulos
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q1" value="c">
+                                Puede cambiar frecuentemente su valor
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q1" value="d">
+                                Identifica de manera única cada registro
+                            </label>
+                        </div>
+
+                        <!-- Pregunta 2 -->
+                        <div class="question">
+                            <h3>2. ¿Cuál es el propósito principal de la normalización en bases de datos?</h3>
+                            <label class="option">
+                                <input type="radio" name="q2" value="a">
+                                Aumentar la velocidad de las consultas
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q2" value="b">
+                                Reducir la redundancia y mejorar la integridad de los datos
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q2" value="c">
+                                Simplificar las consultas SQL
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q2" value="d">
+                                Aumentar el tamaño de la base de datos
+                            </label>
+                        </div>
+
+                        <!-- Pregunta 3 -->
+                        <div class="question">
+                            <h3>3. ¿Qué tipo de JOIN devuelve solo las filas que tienen coincidencias en ambas tablas?</h3>
+                            <label class="option">
+                                <input type="radio" name="q3" value="a">
+                                LEFT JOIN
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q3" value="b">
+                                RIGHT JOIN
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q3" value="c">
+                                INNER JOIN
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q3" value="d">
+                                FULL JOIN
+                            </label>
+                        </div>
+
+                        <!-- Pregunta 4 -->
+                        <div class="question">
+                            <h3>4. Una clave foránea en una tabla hace referencia a:</h3>
+                            <label class="option">
+                                <input type="radio" name="q4" value="a">
+                                Cualquier campo de otra tabla
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q4" value="b">
+                                La clave primaria de otra tabla
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q4" value="c">
+                                Una tabla de otro esquema
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q4" value="d">
+                                Un índice secundario
+                            </label>
+                        </div>
+
+                        <!-- Pregunta 5 -->
+                        <div class="question">
+                            <h3>5. ¿Qué condición debe cumplir una tabla para estar en Primera Forma Normal (1FN)?</h3>
+                            <label class="option">
+                                <input type="radio" name="q5" value="a">
+                                No debe tener dependencias transitivas
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q5" value="b">
+                                Todos los campos deben depender de la clave primaria completa
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q5" value="c">
+                                Cada columna debe contener valores atómicos y no debe haber grupos repetidos
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q5" value="d">
+                                Debe tener al menos tres tablas relacionadas
+                            </label>
+                        </div>
+
+                        <button type="button" class="btn
